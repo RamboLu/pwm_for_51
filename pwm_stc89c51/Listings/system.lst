@@ -1,0 +1,85 @@
+C51 COMPILER V9.54   SYSTEM                                                                03/03/2016 01:22:56 PAGE 1   
+
+
+C51 COMPILER V9.54, COMPILATION OF MODULE SYSTEM
+OBJECT MODULE PLACED IN .\Objects\system.obj
+COMPILER INVOKED BY: C:\Keil_v5\C51\BIN\C51.EXE system.c OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND PRINT(.\Listings\sy
+                    -stem.lst) TABS(2) OBJECT(.\Objects\system.obj)
+
+line level    source
+
+   1          #include <reg52.h>
+   2          #include <system.h>
+   3          
+   4          void delay_ms(uchar t)
+   5          {
+   6   1        uchar j;
+   7   1        for(j=0;j<250;j++)
+   8   1        {
+   9   2          for(t=0;t<100;t++)
+  10   2          {;}
+  11   2        }
+  12   1      }
+  13          
+  14          /*初始化API，定时器初始化API*/
+  15          
+  16          void Timer0Init()   //@11.0592MHz
+  17          {
+  18   1      //  AUXR &= 0x7F;   //定时器时钟12T模式
+  19   1        TMOD |= 0x01;   //设置定时器0模式1
+  20   1        TL0 = 0x00;     //设置定时初值
+  21   1        TH0 = 0x00;     //设置定时初值
+  22   1        TF0 = 0;        //清除TF0标志
+  23   1        TR0 = 0;        //定时器0停止计时
+  24   1      }
+  25          
+  26          void UartInit()   //9600bps@11.0592MHz
+  27          {
+  28   1        SCON = 0x50;    //8位数据,可变波特率
+  29   1      //  AUXR |= 0x01;   //串口1选择定时器2为波特率发生器
+  30   1      //  AUXR &= 0xFB;   //定时器2时钟为Fosc/12,即12T
+  31   1        TL2=RCAP2L=(65536-(FOSC/32/BOUD));    //设定定时初值   此处注意，根据晶振频率再改动
+  32   1        TH2=RCAP2H=(65536-(FOSC/32/BOUD))>>8;   //设定定时初值
+  33   1        T2CON=0x34;
+  34   1      //  AUXR |= 0x10;   //启动定时器2
+  35   1      }
+  36          
+  37          void system_init()
+  38          {
+  39   1        ET0=1;//开定时器0中断 
+  40   1        ES=1; //允许串口中断
+  41   1        EA=1; //开总中断
+  42   1        UartInit();
+  43   1        Timer0Init();
+  44   1      }
+  45          
+  46          /*串口发送API*/
+  47          void senddata(uchar dat)
+  48          {
+  49   1        SBUF=dat;
+  50   1        while(TI==0);
+  51   1        TI=0;
+  52   1      }
+  53          void sendstring(uchar *s)
+  54          {
+C51 COMPILER V9.54   SYSTEM                                                                03/03/2016 01:22:56 PAGE 2   
+
+  55   1        while(*s)
+  56   1        {
+  57   2          senddata(*s++);
+  58   2        }
+  59   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    102    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----       3
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)
